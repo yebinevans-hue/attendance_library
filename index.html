@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>실습</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Apple SD Gothic Neo','Malgun Gothic',sans-serif;background:#f1f5f9;}
+button,input{font-family:inherit;}
+.btn-green{width:100%;background:#16a34a;color:#fff;border:none;border-radius:14px;padding:18px;font-size:17px;font-weight:800;cursor:pointer;margin-bottom:16px;}
+.btn-blue{width:100%;margin-top:16px;background:#2563eb;color:#fff;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;}
+.btn-dark{background:#1e293b;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;}
+.btn-link{background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;text-decoration:underline;}
+.card{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:20px 24px;margin-bottom:12px;}
+.label{font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+var FIXED = {"번호":1,"성명":1,"학년":1,"학번":1,"ID":1,"PW":1};
+
+var SAMPLE = [
+  {번호:1,성명:"곽용민",학년:"3",학번:"20245851",ID:"행복1",PW:"1234","등록번호 대출":"IN20090","예약 대출":"IN30001","자료입력(누락부여)":"IN100"},
+  {번호:2,성명:"구화중",학년:"2",학번:"20255768",ID:"행복2",PW:"1234","등록번호 대출":"IN20091","예약 대출":"IN30002","자료입력(누락부여)":"IN101"},
+  {번호:3,성명:"김민아",학년:"3",학번:"20235330",ID:"행복3",PW:"1234","등록번호 대출":"IN20092","예약 대출":"IN30003","자료입력(누락부여)":"IN102"},
+  {번호:4,성명:"김서윤",학년:"3",학번:"20245934",ID:"행복4",PW:"1234","등록번호 대출":"IN20093","예약 대출":"IN30004","자료입력(누락부여)":"IN103"},
+  {번호:5,성명:"김수민",학년:"2",학번:"20250798",ID:"행복5",PW:"1234","등록번호 대출":"IN20094","예약 대출":"IN30005","자료입력(누락부여)":"IN104"},
+  {번호:6,성명:"김정모",학년:"2",학번:"20201092",ID:"행복6",PW:"1234","등록번호 대출":"IN20095","예약 대출":"IN30006","자료입력(누락부여)":"IN105"},
+  {번호:7,성명:"김준환",학년:"2",학번:"20253870",ID:"행복7",PW:"1234","등록번호 대출":"IN20096","예약 대출":"IN30007","자료입력(누락부여)":"IN106"},
+  {번호:8,성명:"김태영",학년:"2",학번:"20253893",ID:"행복8",PW:"1234","등록번호 대출":"IN20097","예약 대출":"IN30008","자료입력(누락부여)":"IN107"},
+  {번호:9,성명:"김한주",학년:"4",학번:"20202709",ID:"행복9",PW:"1234","등록번호 대출":"IN20098","예약 대출":"IN30009","자료입력(누락부여)":"IN108"},
+  {번호:10,성명:"김현빈",학년:"2",학번:"20255005",ID:"행복10",PW:"1234","등록번호 대출":"IN20099","예약 대출":"IN30010","자료입력(누락부여)":"IN109"},
+  {번호:11,성명:"노민지",학년:"3",학번:"20231398",ID:"행복11",PW:"1234","등록번호 대출":"IN20100","예약 대출":"IN30011","자료입력(누락부여)":"IN110"},
+  {번호:12,성명:"모정은",학년:"3",학번:"20244205",ID:"행복12",PW:"1234","등록번호 대출":"IN20101","예약 대출":"IN30012","자료입력(누락부여)":"IN111"},
+  {번호:13,성명:"문석진",학년:"3",학번:"20202682",ID:"행복13",PW:"1234","등록번호 대출":"IN20102","예약 대출":"IN30013","자료입력(누락부여)":"IN112"},
+  {번호:14,성명:"박서우",학년:"2",학번:"20256735",ID:"행복14",PW:"1234","등록번호 대출":"IN20103","예약 대출":"IN30014","자료입력(누락부여)":"IN113"},
+  {번호:15,성명:"박시준",학년:"2",학번:"20233968",ID:"행복15",PW:"1234","등록번호 대출":"IN20104","예약 대출":"IN30015","자료입력(누락부여)":"IN114"},
+  {번호:16,성명:"박종은",학년:"2",학번:"20256546",ID:"행복16",PW:"1234","등록번호 대출":"IN20105","예약 대출":"IN30016","자료입력(누락부여)":"IN115"},
+  {번호:17,성명:"박현진",학년:"3",학번:"20243508",ID:"행복17",PW:"1234","등록번호 대출":"IN20106","예약 대출":"IN30017","자료입력(누락부여)":"IN116"},
+  {번호:18,성명:"서은새",학년:"2",학번:"20251623",ID:"행복18",PW:"1234","등록번호 대출":"IN20107","예약 대출":"IN30018","자료입력(누락부여)":"IN117"}
+];
+var SAMPLE_EXTRA = ["등록번호 대출","예약 대출","자료입력(누락부여)"];
+
+function lsGet(k, fb) {
+  try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch(e) { return fb; }
+}
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+
+var students  = lsGet("lp_students", SAMPLE);
+var extraCols = lsGet("lp_extra",    SAMPLE_EXTRA);
+var pageTitle = lsGet("lp_title",    "도서관 정보시스템 이용법 실습");
+var sysUrl    = lsGet("lp_url",      "http://121.130.28.118:8080/METIS/");
+var current   = null;
+var clicks    = 0;
+var uploadMsg = "";
+
+function esc(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function render(html) { document.getElementById("app").innerHTML = html; }
+
+function showLanding() {
+  render(
+    '<div style="min-height:100vh;background:#f1f5f9;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">' +
+      '<h1 id="ptitle" style="font-size:22px;font-weight:800;color:#1e293b;margin-bottom:40px;text-align:center;cursor:default;user-select:none;letter-spacing:-0.5px">' + esc(pageTitle) + '</h1>' +
+      '<div style="background:#fff;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:36px 32px;width:100%;max-width:360px">' +
+        '<p style="text-align:center;font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:16px;letter-spacing:.5px">ID / PW 확인</p>' +
+        '<input id="sid" style="width:100%;border:1.5px solid #cbd5e1;border-radius:10px;padding:14px;text-align:center;font-size:18px;outline:none;letter-spacing:2px" placeholder="학번 입력" />' +
+        '<div id="err" style="color:#ef4444;font-size:13px;text-align:center;margin-top:10px;min-height:20px"></div>' +
+        '<button class="btn-blue" id="btnLogin">확인</button>' +
+      '</div>' +
+    '</div>'
+  );
+  var inp = document.getElementById("sid");
+  document.getElementById("btnLogin").onclick = doLogin;
+  inp.onkeydown = function(e) { if (e.key === "Enter") doLogin(); };
+  document.getElementById("ptitle").onclick = function() {
+    clicks++;
+    if (clicks >= 5) { clicks = 0; showAdmin(); }
+  };
+  inp.focus();
+}
+
+function doLogin() {
+  var sid = document.getElementById("sid").value.trim();
+  var found = null;
+  for (var i = 0; i < students.length; i++) {
+    if (String(students[i]["학번"]).trim() === sid) { found = students[i]; break; }
+  }
+  if (found) { current = found; showStudent(); }
+  else { document.getElementById("err").textContent = "등록된 학번이 없습니다."; }
+}
+
+function showStudent() {
+  var c = current;
+  var extraRows = "";
+  for (var i = 0; i < extraCols.length; i++) {
+    var col = extraCols[i];
+    extraRows += '<tr style="border-top:' + (i === 0 ? "none" : "1px solid #f1f5f9") + '">' +
+      '<td style="padding:10px 4px;color:#64748b">' + esc(col) + '</td>' +
+      '<td style="padding:10px 4px;text-align:right;font-family:monospace;font-weight:800;color:#1e293b;font-size:15px">' + esc(c[col] || "") + '</td>' +
+    '</tr>';
+  }
+  var extraSection = extraCols.length ? (
+    '<div class="card"><p class="label">실습 코드</p>' +
+    '<table style="width:100%;border-collapse:collapse;font-size:14px"><tbody>' + extraRows + '</tbody></table></div>'
+  ) : "";
+
+  render(
+    '<div style="min-height:100vh;background:#f1f5f9;padding:20px">' +
+      '<div style="max-width:480px;margin:0 auto">' +
+        '<button class="btn-green" id="btnSys">🖥️ 시스템 접속</button>' +
+        '<div class="card"><p class="label">본인 확인</p>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">' +
+            '<div style="background:#f8fafc;border-radius:10px;padding:12px 6px"><p style="font-size:11px;color:#94a3b8;margin-bottom:4px">성명</p><p style="font-weight:800;color:#1e293b;font-size:14px">' + esc(c["성명"]) + '</p></div>' +
+            '<div style="background:#f8fafc;border-radius:10px;padding:12px 6px"><p style="font-size:11px;color:#94a3b8;margin-bottom:4px">학년</p><p style="font-weight:800;color:#1e293b;font-size:14px">' + esc(c["학년"]) + '학년</p></div>' +
+            '<div style="background:#f8fafc;border-radius:10px;padding:12px 6px"><p style="font-size:11px;color:#94a3b8;margin-bottom:4px">학번</p><p style="font-weight:800;color:#1e293b;font-size:14px">' + esc(c["학번"]) + '</p></div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="card"><p class="label">실습 계정</p>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+            '<div style="background:#eff6ff;border-radius:10px;padding:16px;text-align:center"><p style="font-size:11px;font-weight:700;color:#93c5fd;margin-bottom:6px">ID</p><p style="font-weight:900;color:#1d4ed8;font-size:22px;letter-spacing:1px">' + esc(c["ID"]) + '</p></div>' +
+            '<div style="background:#eff6ff;border-radius:10px;padding:16px;text-align:center"><p style="font-size:11px;font-weight:700;color:#93c5fd;margin-bottom:6px">PW</p><p style="font-weight:900;color:#1d4ed8;font-size:22px;letter-spacing:1px">' + esc(c["PW"]) + '</p></div>' +
+          '</div>' +
+        '</div>' +
+        extraSection +
+        '<button class="btn-link" id="btnBack">← 돌아가기</button>' +
+      '</div>' +
+    '</div>'
+  );
+  document.getElementById("btnSys").onclick = function() {
+    try { window.open(sysUrl, "_blank"); } catch(e) { window.location.href = sysUrl; }
+  };
+  document.getElementById("btnBack").onclick = function() { current = null; showLanding(); };
+}
+
+function showAdmin() {
+  var cols = ["성명","학년","학번","ID","PW"].concat(extraCols);
+  var ths = "";
+  for (var i = 0; i < cols.length; i++) {
+    ths += '<th style="padding:6px 10px;text-align:left;color:#94a3b8;font-weight:600;white-space:nowrap">' + esc(cols[i]) + '</th>';
+  }
+  var trs = "";
+  var n = Math.min(students.length, 5);
+  for (var r = 0; r < n; r++) {
+    trs += '<tr style="border-bottom:1px solid #f8fafc">';
+    for (var ci = 0; ci < cols.length; ci++) {
+      trs += '<td style="padding:7px 10px;color:#334155;white-space:nowrap">' + esc(students[r][cols[ci]] || "") + '</td>';
+    }
+    trs += '</tr>';
+  }
+  var more = students.length > 5 ? '<p style="font-size:12px;color:#94a3b8;margin-top:8px">... 외 ' + (students.length - 5) + '명</p>' : "";
+  var msgHtml = uploadMsg
+    ? '<div style="font-size:13px;margin-top:10px;color:' + (uploadMsg.charAt(0) === "✓" ? "#16a34a" : "#ef4444") + '">' + esc(uploadMsg) + '</div>'
+    : '<div style="min-height:20px;margin-top:10px"></div>';
+
+  render(
+    '<div style="min-height:100vh;background:#f1f5f9;padding:20px">' +
+      '<div style="max-width:640px;margin:0 auto">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">' +
+          '<h2 style="font-weight:800;font-size:18px;color:#1e293b">⚙️ 관리자 설정</h2>' +
+          '<button class="btn-link" id="btnOut">← 나가기</button>' +
+        '</div>' +
+        '<div class="card">' +
+          '<p style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-bottom:16px">기본 설정</p>' +
+          '<div style="margin-bottom:12px"><label style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:6px">페이지 제목</label>' +
+            '<input id="inp-title" value="' + esc(pageTitle) + '" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:14px;outline:none" /></div>' +
+          '<div><label style="font-size:13px;font-weight:600;color:#475569;display:block;margin-bottom:6px">시스템 접속 URL</label>' +
+            '<input id="inp-url" value="' + esc(sysUrl) + '" style="width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;font-family:monospace;outline:none" /></div>' +
+        '</div>' +
+        '<div class="card">' +
+          '<p style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-bottom:8px">마스터 파일 업로드</p>' +
+          '<p style="font-size:12px;color:#94a3b8;margin-bottom:16px">필수 열: <strong>번호, 성명, 학년, 학번, ID, PW</strong> · 이후 열은 자동 인식</p>' +
+          '<input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none" />' +
+          '<button class="btn-dark" id="btnFile">📂 엑셀 파일 선택</button>' +
+          msgHtml +
+        '</div>' +
+        '<div class="card" style="overflow-x:auto">' +
+          '<p style="font-size:12px;font-weight:700;color:#94a3b8;letter-spacing:1px;margin-bottom:12px">현재 데이터 미리보기 (' + students.length + '명)</p>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="border-bottom:2px solid #f1f5f9">' + ths + '</tr></thead><tbody>' + trs + '</tbody></table>' +
+          more +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  );
+
+  document.getElementById("btnOut").onclick = showLanding;
+  document.getElementById("inp-title").oninput = function() { pageTitle = this.value; lsSet("lp_title", pageTitle); };
+  document.getElementById("inp-url").oninput   = function() { sysUrl = this.value;    lsSet("lp_url", sysUrl); };
+  document.getElementById("btnFile").onclick   = function() { document.getElementById("fileInp").click(); };
+  document.getElementById("fileInp").onchange  = function() { handleFile(this); };
+}
+
+function handleFile(inp) {
+  var file = inp.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      var wb = XLSX.read(new Uint8Array(evt.target.result), { type: "array" });
+      var ws = wb.Sheets[wb.SheetNames[0]];
+      var data = XLSX.utils.sheet_to_json(ws, { defval: "" });
+      if (!data.length) { uploadMsg = "❌ 데이터가 없습니다."; showAdmin(); return; }
+      var headers = Object.keys(data[0]);
+      var extra = [];
+      for (var i = 0; i < headers.length; i++) {
+        if (!FIXED[headers[i]]) extra.push(headers[i]);
+      }
+      students = data.map(function(r) {
+        var o = {};
+        for (var k in r) o[k] = r[k];
+        o["학번"] = String(r["학번"]).trim();
+        return o;
+      });
+      extraCols = extra;
+      lsSet("lp_students", students);
+      lsSet("lp_extra", extraCols);
+      uploadMsg = "✓ " + data.length + "명 로드 완료 · 가변 열: " + (extra.join(", ") || "없음");
+    } catch(e) {
+      uploadMsg = "❌ 파일 읽기 실패: " + e.message;
+    }
+    showAdmin();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+showLanding();
+</script>
+</body>
+</html>
